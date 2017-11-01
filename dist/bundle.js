@@ -108,7 +108,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(0);
 var Display_1 = __webpack_require__(4);
 var ButtonPanel_1 = __webpack_require__(5);
-var big_js_1 = __webpack_require__(7);
+var calculate_1 = __webpack_require__(7);
 ;
 var App = /** @class */ (function (_super) {
     __extends(App, _super);
@@ -127,8 +127,9 @@ var App = /** @class */ (function (_super) {
     ;
     App.prototype.handleClick = function (buttonName) {
         console.log("App::handleClick(): " + buttonName + ' ' + JSON.stringify(this.state));
-        this.setState(calculate(this.state, buttonName));
+        this.setState(calculate_1.default(this.state, buttonName));
     };
+    //// render ///////////////////////////////////////////////////////////////////////////////
     App.prototype.render = function () {
         return (React.createElement("div", { className: "component-app" },
             React.createElement(Display_1.Display, { value: this.state.next || this.state.total || '0' }),
@@ -137,106 +138,6 @@ var App = /** @class */ (function (_super) {
     return App;
 }(React.Component));
 exports.App = App;
-//// logic ///////////////////////////////////////////////////////////////////////////////
-function calculate(obj, buttonName) {
-    if (buttonName === 'AC') {
-        return {
-            total: 0,
-            next: "",
-            operation: ""
-        };
-    }
-    if (isNumber(buttonName)) {
-        if (buttonName === '0' && obj.next === '0') {
-            return {};
-        }
-        // If there is an operation, update next
-        if (obj.operation) {
-            if (obj.next) {
-                return { next: obj.next + buttonName };
-            }
-            return { next: buttonName };
-        }
-        // If there is no operation, update next and clear the value
-        if (obj.next) {
-            return {
-                next: obj.next + buttonName,
-                total: 0,
-            };
-        }
-        return {
-            next: buttonName,
-            total: 0,
-        };
-    }
-    if (buttonName === '=') {
-        if (obj.next && obj.operation) {
-            return {
-                total: operate(obj.total, obj.next, obj.operation),
-                next: null,
-                operation: null,
-            };
-        }
-        else {
-            // '=' with no operation, nothing to do
-            return {};
-        }
-    }
-    if (buttonName === '+/-') {
-        if (obj.next) {
-            return { next: (-1 * parseFloat(obj.next)).toString() };
-        }
-        if (obj.total) {
-            return { total: (-1 * parseFloat(obj.total)).toString() };
-        }
-        return {};
-    }
-    // User pressed an operation button and there is an existing operation
-    if (obj.operation) {
-        return {
-            total: operate(obj.total, obj.next, obj.operation),
-            next: '',
-            operation: buttonName,
-        };
-    }
-    // no operation yet, but the user typed one
-    // The user hasn't typed a number yet, just save the operation
-    if (!obj.next) {
-        return { operation: buttonName };
-    }
-    // save the operation and shift 'next' into 'total'
-    return {
-        total: obj.next,
-        next: '',
-        operation: buttonName,
-    };
-}
-exports.calculate = calculate;
-function operate(numberOne, numberTwo, operation) {
-    var one = big_js_1.Big(numberOne);
-    var two = big_js_1.Big(numberTwo);
-    if (operation === '+') {
-        return one.plus(two).toString();
-    }
-    if (operation === '-') {
-        return one.minus(two).toString();
-    }
-    if (operation === 'x') {
-        return one.times(two).toString();
-    }
-    if (operation === '÷') {
-        return one.div(two).toString();
-    }
-    if (operation === '%') {
-        return one.mod(two).toString();
-    }
-    throw Error("Unknown operation '" + operation + "'");
-}
-exports.default = operate;
-function isNumber(item) {
-    return !!item.match(/[0-9]+/);
-}
-exports.isNumber = isNumber;
 
 
 /***/ }),
@@ -374,6 +275,165 @@ exports.Button = Button;
 
 /***/ }),
 /* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (immutable) */ __webpack_exports__["default"] = calculate;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__operate__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__isNumber__ = __webpack_require__(10);
+
+
+
+/**
+ * Given a button name and a calculator data object, return an updated
+ * calculator data object.
+ *
+ * Calculator data object contains:
+ *   total:String      the running total
+ *   next:String       the next number to be operated on with the total
+ *   operation:String  +, -, etc.
+ */
+function calculate(obj, buttonName) {
+    if (buttonName === 'AC') {
+        return {
+            total: null,
+            next: null,
+            operation: null,
+        };
+    }
+
+    if (Object(__WEBPACK_IMPORTED_MODULE_1__isNumber__["a" /* default */])(buttonName)) {
+        if (buttonName === '0' && obj.next === '0') {
+            return {};
+        }
+        // If there is an operation, update next
+        if (obj.operation) {
+            if (obj.next) {
+                return { next: obj.next + buttonName };
+            }
+            return { next: buttonName };
+        }
+        // If there is no operation, update next and clear the value
+        if (obj.next) {
+            return {
+                next: obj.next + buttonName,
+                total: null,
+            };
+        }
+        return {
+            next: buttonName,
+            total: null,
+        };
+    }
+
+    if (buttonName === '.') {
+        if (obj.next) {
+            if (obj.next.includes('.')) {
+                return {};
+            }
+            return { next: obj.next + '.' };
+        }
+        if (obj.operation) {
+            return { next: '0.' };
+        }
+        if (obj.total) {
+            if (obj.total.includes('.')) {
+                return {};
+            }
+            return { total: obj.total + '.' };
+        }
+        return { total: '0.' };
+    }
+
+    if (buttonName === '=') {
+        if (obj.next && obj.operation) {
+            return {
+                total: Object(__WEBPACK_IMPORTED_MODULE_0__operate__["a" /* default */])(obj.total, obj.next, obj.operation),
+                next: null,
+                operation: null,
+            };
+        } else {
+            // '=' with no operation, nothing to do
+            return {};
+        }
+    }
+
+    if (buttonName === '+/-') {
+        if (obj.next) {
+            return { next: (-1 * parseFloat(obj.next)).toString() };
+        }
+        if (obj.total) {
+            return { total: (-1 * parseFloat(obj.total)).toString() };
+        }
+        return {};
+    }
+
+    // Button must be an operation
+
+    // When the user presses an operation button without having entered
+    // a number first, do nothing.
+    // if (!obj.next && !obj.total) {
+    //   return {};
+    // }
+
+    // User pressed an operation button and there is an existing operation
+    if (obj.operation) {
+        return {
+            total: Object(__WEBPACK_IMPORTED_MODULE_0__operate__["a" /* default */])(obj.total, obj.next, obj.operation),
+            next: null,
+            operation: buttonName,
+        };
+    }
+
+    // no operation yet, but the user typed one
+
+    // The user hasn't typed a number yet, just save the operation
+    if (!obj.next) {
+        return { operation: buttonName };
+    }
+
+    // save the operation and shift 'next' into 'total'
+    return {
+        total: obj.next,
+        next: null,
+        operation: buttonName,
+    };
+}
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = operate;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_big_js__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_big_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_big_js__);
+
+
+function operate(numberOne, numberTwo, operation) {
+    const one = __WEBPACK_IMPORTED_MODULE_0_big_js___default()(numberOne);
+    const two = __WEBPACK_IMPORTED_MODULE_0_big_js___default()(numberTwo);
+    if (operation === '+') {
+        return one.plus(two).toString();
+    }
+    if (operation === '-') {
+        return one.minus(two).toString();
+    }
+    if (operation === 'x') {
+        return one.times(two).toString();
+    }
+    if (operation === '÷') {
+        return one.div(two).toString();
+    }
+    if (operation === '%') {
+        return one.mod(two).toString();
+    }
+    throw Error(`Unknown operation '${operation}'`);
+}
+
+/***/ }),
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_RESULT__;/*
@@ -1317,6 +1377,16 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/*
   }
 })(this);
 
+
+/***/ }),
+/* 10 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = isNumber;
+function isNumber(item) {
+    return !!item.match(/[0-9]+/);
+}
 
 /***/ })
 /******/ ]);
