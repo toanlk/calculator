@@ -9,8 +9,10 @@
   "author": "toanlk",
   "license": "ISC",
   "dependencies": {
+    "@types/big.js": "^4.0.0",
     "@types/react": "^16.0.19",
     "@types/react-dom": "^16.0.2",
+    "big.js": "^5.0.3",
     "react": "^16.0.0",
     "react-dom": "^16.0.0"
   },

@@ -1,8 +1,8 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-import { Display } from "./components/Display";
+import { App } from "./components/App";
 
 ReactDOM.render(
-    <Display value="TypeScript"/>, document.getElementById("app")
+    <App />, document.getElementById("root")
 );
